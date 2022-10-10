@@ -1,0 +1,29 @@
+{
+  "name": "babel-plugin-xst-api-log",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node demo/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@arco-design/web-react": "^2.40.2",
+    "@babel/core": "^7.19.3",
+    "@babel/generator": "^7.19.3",
+    "@babel/parser": "^7.19.3",
+    "@babel/preset-env": "^7.19.3",
+    "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
+    "@babel/traverse": "^7.19.3",
+    "antd": "^4.23.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tdesign-react": "^0.42.2"
+  },
+  "dependencies": {
+    "colors": "^1.4.0"
+  }
+}
