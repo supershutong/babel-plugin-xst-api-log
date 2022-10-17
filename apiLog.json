@@ -1,0 +1,66 @@
+{
+    "@tinper/next-ui": {
+        "Input": {
+            "local": "FormControl",
+            "api": {
+                "defaultValue": "StringLiteral"
+            }
+        },
+        "DatePicker": {
+            "local": "DatePicker",
+            "api": {
+                "picker": "StringLiteral",
+                "showTime": "JSXExpressionContainer",
+                "onChange": "JSXExpressionContainer"
+            }
+        },
+        "Checkbox": {
+            "local": "Checkbox",
+            "api": {
+                "value": "StringLiteral",
+                "readOnly": "JSXExpressionContainer"
+            }
+        },
+        "Group": {
+            "local": "CheckboxGroup",
+            "api": {
+                "style": "JSXExpressionContainer",
+                "value": "JSXExpressionContainer"
+            }
+        },
+        "RangePicker": {
+            "local": "Range",
+            "api": {
+                "placeholder": "JSXExpressionContainer"
+            }
+        }
+    },
+    "componentsInCurrentFile": {
+        "FormControl": {
+            "lib": "@tinper/next-ui"
+        },
+        "DatePicker": {
+            "lib": "@tinper/next-ui"
+        },
+        "Checkbox": {
+            "lib": "@tinper/next-ui"
+        },
+        "Button": {
+            "lib": "tinper-bee"
+        },
+        "CheckboxGroup": {
+            "lib": "@tinper/next-ui"
+        },
+        "Range": {
+            "lib": "@tinper/next-ui"
+        }
+    },
+    "tinper-bee": {
+        "Button": {
+            "local": "Button",
+            "api": {
+                "size": "StringLiteral"
+            }
+        }
+    }
+}

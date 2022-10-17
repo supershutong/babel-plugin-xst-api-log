@@ -9,7 +9,9 @@ const colors = require('colors')
 //     },
 //     '@tinper/next-ui': {
 //         Input: {local: 'FormControl', api: {}},
-//         DatePicker: {local: 'DatePicker', api: {}}
+//         DatePicker: {local: 'DatePicker', api: {}},
+//         RangePicker: {local: 'Range', api: {}},
+//         Group: {local: 'CheckboxGroup', api: {}},
 //     },
 //     'tinper-bee': {Button: {local: 'Button', api: {}}}
 // }
@@ -25,17 +27,32 @@ module.exports = ({types: t}, opts) => {
             if (!fs.existsSync(this.filePath)) {
                 console.log(colors.green('[API log] 初始化------'))
             } else {
-                fs.readFile(this.filePath, 'utf8', (err, data) => {
-                    if (err) {
-                        console.log(colors.red('[API log] 读取失败'), err)
-                    } else {
-                        console.log(colors.green('[API log] 读取成功'))
-                        this.result = data ? JSON.parse(data.toString()) : {}
-                    }
-                })
+                const data = fs.readFileSync(this.filePath, 'utf8')
+                this.result = data ? {...JSON.parse(data), componentsInCurrentFile: {}} : {}
+                console.log(colors.green('[API log] 读取成功'))
             }
         },
         visitor: {
+            Identifier(path, state) {
+                /** 写入 Menu.SubMenu、Select.Option、DatePicker.RangePicker等子组件，如：
+                 * 1、const CheckboxGroup = Checkbox.Group
+                 * 2、const {RangePicker: Range} = DatePicker
+                 */
+                const parentComp = path.parent.object?.name
+                const libObj = this.result.componentsInCurrentFile?.[parentComp]
+                if (parentComp && libObj) {
+                    const subCompName = path.parent.property.name
+                    const local =
+                        path.parentPath.parentPath.node.id.name /* CheckboxGroup */ ||
+                        path.parentPath.container.id.name /* Range */ ||
+                        path.node.name
+                    this.result.componentsInCurrentFile[local] = {lib: libObj.lib}
+                    this.result[libObj.lib][subCompName] = {
+                        local,
+                        api: this.result[libObj.lib][subCompName]?.api || {}
+                    }
+                }
+            },
             ImportDeclaration(path) {
                 const node = path.node
                 if (libs.includes(node.source.value)) {
@@ -75,13 +92,8 @@ module.exports = ({types: t}, opts) => {
         },
         post(state) {
             this.result = JSON.stringify(this.result, null, 4)
-            fs.writeFile(this.filePath, this.result, {flag: 'w+'}, (err, data) => {
-                if (err) {
-                    console.log(colors.red('[API log] 写入失败'), err)
-                } else {
-                    console.log(colors.green('[API log] 写入成功'))
-                }
-            })
+            fs.writeFileSync(this.filePath, this.result, {flag: 'w+'})
+            console.log(colors.green('[API log] 写入成功'))
         }
     }
 }
