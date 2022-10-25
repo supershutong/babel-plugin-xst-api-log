@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Button} from 'tinper-bee'
 
-export class BeeButton extends React.Component {
+export default class BeeButton extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -15,6 +15,11 @@ export class BeeButton extends React.Component {
     }
 
     render() {
-        return <Button size='lg'>提交</Button>
+        const {size, ...others} = this.props
+        return (
+            <Button size={size || 'lg'} {...others}>
+                提交
+            </Button>
+        )
     }
 }

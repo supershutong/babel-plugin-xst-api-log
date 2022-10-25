@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Input} from 'antd'
 import {Input as FormControl, DatePicker, Checkbox} from '@tinper/next-ui'
 import {Button} from 'tinper-bee'
-// import {Button} from './Button'
+import BeeButton from './Button'
 import '@tinper/next-ui/dist/tinper-next.css'
 
 const CheckboxGroup = Checkbox.Group
@@ -40,7 +40,7 @@ export class Page extends React.Component {
                     </Checkbox>
                     <Checkbox value='4'>4</Checkbox>
                 </CheckboxGroup>
-                <Button size='lg'>提交</Button>
+                <BeeButton type='primary'>提交</BeeButton>
             </div>
         )
     }
