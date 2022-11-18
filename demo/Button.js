@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {Button} from 'tinper-bee'
+import {Input} from '@tinper/next-ui'
 
 export default class BeeButton extends React.Component {
     constructor(props) {
@@ -15,11 +16,14 @@ export default class BeeButton extends React.Component {
     }
 
     render() {
-        const {size, ...others} = this.props
+        const {size, children, ...others} = this.props
         return (
-            <Button size={size || 'lg'} {...others}>
-                提交
-            </Button>
+            <div>
+                <Input size='lg' disabled onChange={(value)=>{console.log(value)}} />
+                <Button size={size || 'lg'} {...others}>
+                    {children}{JSON.stringify(others)}
+                </Button>
+            </div>
         )
     }
 }

@@ -1,0 +1,26 @@
+{
+    "componentsInCurrentFile": {
+        "ConfigProvider": {
+            "lib": "@tinper/next-ui"
+        },
+        "DatePicker": {
+            "lib": "@tinper/next-ui"
+        }
+    },
+    "@tinper/next-ui": {
+        "ConfigProvider": {
+            "local": "ConfigProvider",
+            "api": {
+                "registerTheme": "Identifier"
+            }
+        },
+        "DatePicker": {
+            "local": "DatePicker",
+            "api": {
+                "RangePicker": "Identifier",
+                "picker": "StringLiteral",
+                "showToday": "BooleanLiteral"
+            }
+        }
+    }
+}

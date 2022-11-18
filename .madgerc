@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"allowJs": true
+	},
+  "detectiveOptions": {
+		"ts": {
+			"skipTypeImports": true
+		}
+	}
+}
