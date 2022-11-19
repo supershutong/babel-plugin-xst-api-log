@@ -1,9 +1,9 @@
 {
     "componentsInCurrentFile": {
-        "ConfigProvider": {
-            "lib": "@tinper/next-ui"
+        "Button": {
+            "lib": "tinper-bee"
         },
-        "DatePicker": {
+        "Input": {
             "lib": "@tinper/next-ui"
         }
     },
@@ -11,15 +11,61 @@
         "ConfigProvider": {
             "local": "ConfigProvider",
             "api": {
-                "registerTheme": "Identifier"
+                "registerTheme": "Identifier",
+                "config": "Identifier"
+            }
+        },
+        "Input": {
+            "local": "Input",
+            "api": {
+                "type": "StringLiteral",
+                "size": "StringLiteral",
+                "disabled": "BooleanLiteral",
+                "onChange": "ArrowFunctionExpression"
             }
         },
         "DatePicker": {
             "local": "DatePicker",
             "api": {
-                "RangePicker": "Identifier",
                 "picker": "StringLiteral",
-                "showToday": "BooleanLiteral"
+                "showToday": "BooleanLiteral",
+                "showTime": "ObjectExpression",
+                "onChange": "MemberExpression"
+            }
+        },
+        "Checkbox": {
+            "local": "Checkbox",
+            "api": {
+                "value": "StringLiteral",
+                "readOnly": "BooleanLiteral"
+            }
+        },
+        "Group": {
+            "local": "CheckboxGroup",
+            "api": {
+                "style": "ObjectExpression",
+                "value": "MemberExpression",
+                "readOnly": "BooleanLiteral"
+            }
+        },
+        "RangePicker": {
+            "local": "Range",
+            "api": {
+                "placeholder": "ArrayExpression"
+            }
+        },
+        "WeekPicker": {
+            "local": "WeekPicker",
+            "api": {
+                "mode": "StringLiteral"
+            }
+        }
+    },
+    "tinper-bee": {
+        "Button": {
+            "local": "Button",
+            "api": {
+                "size": "LogicalExpression"
             }
         }
     }
