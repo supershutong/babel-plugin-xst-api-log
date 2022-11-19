@@ -1,5 +1,4 @@
 const fs = require('fs')
-const path = require('path')
 const colors = require('colors')
 // const madge = require('madge')
 
@@ -49,11 +48,12 @@ module.exports = ({types: t}, opts) => {
                     // 组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
                     if (
                         result.componentsInCurrentFile[parentComp] &&
+                        result[libObj.lib][parentComp] &&
                         !/^[A-Z]/.test(subCompName) /** 非大驼峰，避免子组件进入 */
                     ) {
                         if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         // 实例方法计入API
-                        let api = result[libObj.lib][parentComp]?.api || {}
+                        let api = result[libObj.lib][parentComp].api || {}
                         api[path.node.name] = path.node.type
                         result[libObj.lib][parentComp].api = api
                         return
@@ -133,8 +133,7 @@ module.exports = ({types: t}, opts) => {
             }
         },
         post(state) {
-            this.filePath = path.resolve(__dirname, output)
-            fs.writeFileSync(this.filePath, JSON.stringify(result, null, 4), {flag: 'w+'})
+            fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
             console.log(colors.green('[API log] ', state.opts.sourceFileName, ' 解析完成'))
         }
     }
