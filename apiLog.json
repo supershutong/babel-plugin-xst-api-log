@@ -9,10 +9,11 @@
     },
     "@tinper/next-ui": {
         "ConfigProvider": {
-            "local": "ConfigProvider",
+            "local": "TConfigProvider",
             "api": {
                 "registerTheme": "Identifier",
-                "config": "Identifier"
+                "config": "Identifier",
+                "locale": "Identifier"
             }
         },
         "Input": {
@@ -38,6 +39,19 @@
             "api": {
                 "value": "StringLiteral",
                 "readOnly": "BooleanLiteral"
+            }
+        },
+        "Button": {
+            "local": "Button",
+            "api": {
+                "className": "StringLiteral"
+            }
+        },
+        "Tooltip": {
+            "local": "Tooltip",
+            "api": {
+                "placement": "StringLiteral",
+                "overlay": "StringLiteral"
             }
         },
         "Checkbox.Group": {

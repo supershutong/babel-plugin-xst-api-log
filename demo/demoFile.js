@@ -1,12 +1,35 @@
 import * as React from 'react'
 import {Input} from 'antd'
-import {ConfigProvider, Input as FormControl, DatePicker, Checkbox} from '@tinper/next-ui'
+import {
+    ConfigProvider as TConfigProvider,
+    Input as FormControl,
+    DatePicker,
+    Checkbox,
+    Button,
+    Tooltip
+} from '@tinper/next-ui'
 import BeeButton from './Button'
 import '@tinper/next-ui/dist/tinper-next.css'
 
 const CheckboxGroup = Checkbox.Group
 const {RangePicker: Range} = DatePicker
-const registerTheme = ConfigProvider.registerTheme
+const registerTheme = TConfigProvider.registerTheme
+
+/**
+ * @desc: 生成DOM
+ * @param {mode} 'iframe' | 'noIframe'
+ * @returns ReactNode
+ */
+const AppWrapper = props => {
+    let lang = getlang(['en', 'tw', 'zh'])
+    TConfigProvider.config({locale: lang})
+
+    return (
+        <TConfigProvider locale={lang}>
+            <Button className='antd-input'>不要弹窗</Button>
+        </TConfigProvider>
+    )
+}
 
 export default class Page extends React.Component {
     constructor(props) {
@@ -15,7 +38,7 @@ export default class Page extends React.Component {
             value: ['2', '4']
         }
         registerTheme('blue')
-        ConfigProvider.config({locale: 'zh-cn'})
+        // TConfigProvider.config({locale: 'zh-cn'})
     }
 
     onChange = (d, dateString) => {
@@ -34,7 +57,7 @@ export default class Page extends React.Component {
                     showTime={{showSecond: false, format: 'H点m分'}}
                     onChange={this.onChange}
                 />
-                <DatePicker.WeekPicker mode='week'/>
+                <DatePicker.WeekPicker mode='week' />
                 <Range placeholder={['开始日期', '结束日期']} />
                 <CheckboxGroup style={{display: 'inline-block'}} value={this.state.value} readOnly>
                     <Checkbox value='2'>2</Checkbox>
@@ -43,6 +66,9 @@ export default class Page extends React.Component {
                     </Checkbox>
                     <Checkbox value='4'>4</Checkbox>
                 </CheckboxGroup>
+                <Tooltip placement='rightTop' overlay='恭喜你'>
+                    {AppWrapper()}
+                </Tooltip>
                 <BeeButton type='primary'>提交</BeeButton>
             </div>
         )

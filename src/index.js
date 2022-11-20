@@ -36,8 +36,19 @@ module.exports = ({types: t}, opts) => {
                  * 2、const {RangePicker: Range} = DatePicker
                  * 3、ConfigProvider.registerTheme('blue') 或 解析出实例方法调用 registerTheme('blue')
                  */
-                const parentComp = path.parent.object?.name
-                const libObj = result.componentsInCurrentFile?.[parentComp]
+                const parentCompLocal = path.parent.object?.name
+                if (!parentCompLocal) return
+                const libObj = result.componentsInCurrentFile?.[parentCompLocal]
+                if (!libObj) return
+                let parentComp = parentCompLocal
+                for (let comp in result[libObj.lib]) {
+                    if (
+                        result[libObj.lib][comp].local === parentComp &&
+                        comp.indexOf('.') < 0 /** 修复parentComp被重复添加成DatePicker.WeekPicker.WeekPicker问题 */
+                    ) {
+                        parentComp = comp
+                    }
+                }
                 if (parentComp && libObj) {
                     const subCompName = path.parent.property.name
                     const local =
@@ -47,7 +58,7 @@ module.exports = ({types: t}, opts) => {
 
                     // 组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
                     if (
-                        result.componentsInCurrentFile[parentComp] &&
+                        result.componentsInCurrentFile[parentCompLocal] &&
                         result[libObj.lib][parentComp] &&
                         !/^[A-Z]/.test(subCompName) /** 非大驼峰，避免子组件进入 */
                     ) {
@@ -87,8 +98,19 @@ module.exports = ({types: t}, opts) => {
                 }
             },
             JSXIdentifier(path) {
-                const parentComp = path.parent.object?.name
-                const libObj = result.componentsInCurrentFile?.[parentComp]
+                const parentCompLocal = path.parent.object?.name
+                if (!parentCompLocal) return
+                const libObj = result.componentsInCurrentFile?.[parentCompLocal]
+                if (!libObj) return
+                let parentComp = parentCompLocal
+                for (let comp in result[libObj.lib]) {
+                    if (
+                        result[libObj.lib][comp].local === parentComp &&
+                        comp.indexOf('.') < 0 /** 修复parentComp被重复添加成DatePicker.WeekPicker.WeekPicker问题 */
+                    ) {
+                        parentComp = comp
+                    }
+                }
                 if (parentComp && libObj) {
                     /** 使用子组件做openingElement标签 DatePicker.WeekPicker */
                     const subCompName = path.parent.property.name
