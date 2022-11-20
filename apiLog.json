@@ -40,7 +40,7 @@
                 "readOnly": "BooleanLiteral"
             }
         },
-        "Group": {
+        "Checkbox.Group": {
             "local": "CheckboxGroup",
             "api": {
                 "style": "ObjectExpression",
@@ -48,13 +48,13 @@
                 "readOnly": "BooleanLiteral"
             }
         },
-        "RangePicker": {
+        "DatePicker.RangePicker": {
             "local": "Range",
             "api": {
                 "placeholder": "ArrayExpression"
             }
         },
-        "WeekPicker": {
+        "DatePicker.WeekPicker": {
             "local": "WeekPicker",
             "api": {
                 "mode": "StringLiteral"

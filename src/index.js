@@ -59,9 +59,9 @@ module.exports = ({types: t}, opts) => {
                         return
                     }
                     result.componentsInCurrentFile[local] = {lib: libObj.lib}
-                    result[libObj.lib][subCompName] = {
+                    result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local,
-                        api: result[libObj.lib][subCompName]?.api || {}
+                        api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
                     }
                 }
             },
@@ -98,9 +98,9 @@ module.exports = ({types: t}, opts) => {
                         path.node.name
 
                     result.componentsInCurrentFile[local] = {lib: libObj.lib}
-                    result[libObj.lib][subCompName] = {
+                    result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local: subCompName,
-                        api: result[libObj.lib][subCompName]?.api || {}
+                        api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
                     }
                 }
             },
