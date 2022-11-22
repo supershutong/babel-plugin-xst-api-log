@@ -6,6 +6,7 @@ import {
     DatePicker,
     Checkbox,
     Button,
+    TreeSelect,
     Tooltip
 } from '@tinper/next-ui'
 import BeeButton from './Button'
@@ -14,6 +15,7 @@ import '@tinper/next-ui/dist/tinper-next.css'
 const CheckboxGroup = Checkbox.Group
 const {RangePicker: Range} = DatePicker
 const registerTheme = TConfigProvider.registerTheme
+const SHOW_PARENT = TreeSelect.SHOW_PARENT
 
 /**
  * @desc: 生成DOM
@@ -69,6 +71,12 @@ export default class Page extends React.Component {
                 <Tooltip placement='rightTop' overlay='恭喜你'>
                     {AppWrapper()}
                 </Tooltip>
+                <TreeSelect
+                    style={{width: 300}}
+                    dropdownStyle={{maxHeight: 400, overflow: 'auto'}}
+                    showCheckedStrategy={SHOW_PARENT}
+                    treeDefaultExpandAll
+                />
                 <BeeButton type='primary'>提交</BeeButton>
             </div>
         )

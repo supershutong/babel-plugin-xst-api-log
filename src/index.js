@@ -1,27 +1,12 @@
 const fs = require('fs')
 const colors = require('colors')
-// const madge = require('madge')
-
-// // 输出
-// const result = {
-//     componentsInCurrentFile: {
-//         Button: {lib: 'tinper-bee'}
-//     },
-//     '@tinper/next-ui': {
-//         Input: {local: 'FormControl', api: {}},
-//         DatePicker: {local: 'DatePicker', api: {}},
-//         RangePicker: {local: 'Range', api: {}},
-//         Group: {local: 'CheckboxGroup', api: {}},
-//     },
-//     'tinper-bee': {Button: {local: 'Button', api: {}}}
-// }
 
 const result = {
     componentsInCurrentFile: {}
 }
 
-module.exports = ({types: t}, opts) => {
-    const {libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json'} = opts
+module.exports = ({ types: t }, opts) => {
+    const { libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json' } = opts
 
     return {
         name: 'xst-api-log',
@@ -56,7 +41,8 @@ module.exports = ({types: t}, opts) => {
                         path.parentPath.container.id?.name /* Range */ ||
                         path.node.name
 
-                    // 组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
+                    // 1、组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
+                    // 2、组件抛出的常量需放进组件API内，不能单独声明为组件。如：TreeSelect.SHOW_PARENT
                     if (
                         result.componentsInCurrentFile[parentCompLocal] &&
                         result[libObj.lib][parentComp] &&
@@ -68,8 +54,15 @@ module.exports = ({types: t}, opts) => {
                         api[path.node.name] = path.node.type
                         result[libObj.lib][parentComp].api = api
                         return
+                    } else if (!/[^A-Z_]+/.test(subCompName)) {
+                        if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
+                        /** 组件抛出的常量需计入组件API */
+                        let api = result[libObj.lib][parentComp].api || {}
+                        api[path.node.name] = "ConstValue"
+                        result[libObj.lib][parentComp].api = api
+                        return
                     }
-                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
+                    result.componentsInCurrentFile[local] = { lib: libObj.lib }
                     result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local,
                         api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
@@ -94,7 +87,7 @@ module.exports = ({types: t}, opts) => {
                         api: result[path.parent.source.value][node.imported.name]?.api || {} /** 已录入API不能漏 */
                     }
                     result.componentsInCurrentFile = result.componentsInCurrentFile || {}
-                    result.componentsInCurrentFile[node.local.name] = {lib: path.parent.source.value} // 组件所属框架
+                    result.componentsInCurrentFile[node.local.name] = { lib: path.parent.source.value } // 组件所属框架
                 }
             },
             JSXIdentifier(path) {
@@ -119,7 +112,7 @@ module.exports = ({types: t}, opts) => {
                         path.parentPath.container.id?.name /* Range */ ||
                         path.node.name
 
-                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
+                    result.componentsInCurrentFile[local] = { lib: libObj.lib }
                     result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local: subCompName,
                         api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
@@ -155,7 +148,7 @@ module.exports = ({types: t}, opts) => {
             }
         },
         post(state) {
-            fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
+            fs.writeFileSync(output, JSON.stringify(result, null, 4), { flag: 'w+' })
             console.log(colors.green('[API log] ', state.opts.sourceFileName, ' 解析完成'))
         }
     }

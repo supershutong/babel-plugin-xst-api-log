@@ -47,6 +47,16 @@
                 "className": "StringLiteral"
             }
         },
+        "TreeSelect": {
+            "local": "TreeSelect",
+            "api": {
+                "SHOW_PARENT": "ConstValue",
+                "style": "ObjectExpression",
+                "dropdownStyle": "ObjectExpression",
+                "showCheckedStrategy": "Identifier",
+                "treeDefaultExpandAll": "BooleanLiteral"
+            }
+        },
         "Tooltip": {
             "local": "Tooltip",
             "api": {
