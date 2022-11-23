@@ -1,9 +1,12 @@
 {
     "componentsInCurrentFile": {
-        "Button": {
-            "lib": "tinper-bee"
+        "Upload": {
+            "lib": "@tinper/next-ui"
         },
-        "Input": {
+        "Button": {
+            "lib": "@tinper/next-ui"
+        },
+        "Dragger": {
             "lib": "@tinper/next-ui"
         }
     },
@@ -44,7 +47,8 @@
         "Button": {
             "local": "Button",
             "api": {
-                "className": "StringLiteral"
+                "className": "StringLiteral",
+                "type": "Identifier"
             }
         },
         "TreeSelect": {
@@ -82,6 +86,21 @@
             "local": "WeekPicker",
             "api": {
                 "mode": "StringLiteral"
+            }
+        },
+        "Upload": {
+            "local": "Upload",
+            "api": {}
+        },
+        "Upload.Dragger": {
+            "local": "Dragger",
+            "api": {
+                "action": "StringLiteral",
+                "accept": "Identifier",
+                "test": "Identifier",
+                "fileList": "CallExpression",
+                "showUploadList": "ObjectExpression",
+                "onRemove": "FunctionExpression"
             }
         }
     },

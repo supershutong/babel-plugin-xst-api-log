@@ -5,8 +5,8 @@ const result = {
     componentsInCurrentFile: {}
 }
 
-module.exports = ({ types: t }, opts) => {
-    const { libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json' } = opts
+module.exports = ({types: t}, opts) => {
+    const {libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json'} = opts
 
     return {
         name: 'xst-api-log',
@@ -58,11 +58,11 @@ module.exports = ({ types: t }, opts) => {
                         if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         /** 组件抛出的常量需计入组件API */
                         let api = result[libObj.lib][parentComp].api || {}
-                        api[path.node.name] = "ConstValue"
+                        api[path.node.name] = 'ConstValue'
                         result[libObj.lib][parentComp].api = api
                         return
                     }
-                    result.componentsInCurrentFile[local] = { lib: libObj.lib }
+                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
                     result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local,
                         api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
@@ -87,7 +87,7 @@ module.exports = ({ types: t }, opts) => {
                         api: result[path.parent.source.value][node.imported.name]?.api || {} /** 已录入API不能漏 */
                     }
                     result.componentsInCurrentFile = result.componentsInCurrentFile || {}
-                    result.componentsInCurrentFile[node.local.name] = { lib: path.parent.source.value } // 组件所属框架
+                    result.componentsInCurrentFile[node.local.name] = {lib: path.parent.source.value} // 组件所属框架
                 }
             },
             JSXIdentifier(path) {
@@ -112,7 +112,7 @@ module.exports = ({ types: t }, opts) => {
                         path.parentPath.container.id?.name /* Range */ ||
                         path.node.name
 
-                    result.componentsInCurrentFile[local] = { lib: libObj.lib }
+                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
                     result[libObj.lib][`${parentComp}.${subCompName}`] = {
                         local: subCompName,
                         api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
@@ -145,10 +145,49 @@ module.exports = ({ types: t }, opts) => {
                         }
                     })
                 }
+            },
+            // 写 ... spread 展开属性，如： <DatePicker {...yourConfig} />
+            JSXSpreadAttribute(path) {
+                const node = path.node
+                const nestComp =
+                    path.parentPath.parentPath.node?.openingElement.name?.property
+                        ?.name /** 使用子组件做openingElement标签 DatePicker.WeekPicker */
+                // 写入Tinper-next和Tinper-bee组件API
+                const openingElement = path.parent.name.name /** 使用组件做openingElement标签 DatePicker */ || nestComp
+                const currentComp = result.componentsInCurrentFile?.[openingElement]
+                if (currentComp /* 目标组件 */) {
+                    Object.keys(result[currentComp.lib]).forEach((comp, i) => {
+                        if (result[currentComp.lib][comp].local === openingElement) {
+                            // 使用local，不能直接使用Key，防止同时使用含有相同模块的多个仓库问题，local也处理类似 Input as FormControl用法问题
+                            const argumentsName = node.argument.name /** 要查找的目标变量名 yourConfig */
+                            const containers =
+                                path.contexts[0].scope.bindings[argumentsName].path.context.parentPath
+                                    .container /** uploaderConfig */
+
+                            for (let container of containers) {
+                                const declaration = container.declarations?.[0]
+                                if (declaration?.id.name === argumentsName) {
+                                    /** 查到 yourConfig 变量 */
+                                    const properties = declaration.init.properties
+                                    properties.forEach(property => {
+                                        /** 属性列表，遍历 */
+                                        if (property.value.type === 'JSXExpressionContainer') {
+                                            // 值为组件/回调
+                                            result[currentComp.lib][comp].api[property.key.name] =
+                                                property.value.expression.type
+                                        } else {
+                                            result[currentComp.lib][comp].api[property.key.name] = property.value.type // 写入变量名 key => value
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    })
+                }
             }
         },
         post(state) {
-            fs.writeFileSync(output, JSON.stringify(result, null, 4), { flag: 'w+' })
+            fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
             console.log(colors.green('[API log] ', state.opts.sourceFileName, ' 解析完成'))
         }
     }

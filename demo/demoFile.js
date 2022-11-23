@@ -11,6 +11,7 @@ import {
 } from '@tinper/next-ui'
 import BeeButton from './Button'
 import '@tinper/next-ui/dist/tinper-next.css'
+import Dragger from './Dragger'
 
 const CheckboxGroup = Checkbox.Group
 const {RangePicker: Range} = DatePicker
@@ -77,6 +78,7 @@ export default class Page extends React.Component {
                     showCheckedStrategy={SHOW_PARENT}
                     treeDefaultExpandAll
                 />
+                <Dragger />
                 <BeeButton type='primary'>提交</BeeButton>
             </div>
         )
