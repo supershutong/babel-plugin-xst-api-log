@@ -1,9 +1,9 @@
 {
     "componentsInCurrentFile": {
-        "Upload": {
+        "Icon": {
             "lib": "@tinper/next-ui"
         },
-        "Button": {
+        "Upload": {
             "lib": "@tinper/next-ui"
         },
         "Dragger": {
@@ -47,8 +47,7 @@
         "Button": {
             "local": "Button",
             "api": {
-                "className": "StringLiteral",
-                "type": "Identifier"
+                "className": "StringLiteral"
             }
         },
         "TreeSelect": {
@@ -88,6 +87,13 @@
                 "mode": "StringLiteral"
             }
         },
+        "Icon": {
+            "local": "Icon",
+            "api": {
+                "type": "StringLiteral",
+                "className": "StringLiteral"
+            }
+        },
         "Upload": {
             "local": "Upload",
             "api": {}
@@ -95,12 +101,12 @@
         "Upload.Dragger": {
             "local": "Dragger",
             "api": {
+                "multiple": "BooleanLiteral",
+                "enterDragger": "FunctionExpression",
+                "leaveDragger": "FunctionExpression",
+                "showUploadList": "BooleanLiteral",
                 "action": "StringLiteral",
-                "accept": "Identifier",
-                "test": "Identifier",
-                "fileList": "CallExpression",
-                "showUploadList": "ObjectExpression",
-                "onRemove": "FunctionExpression"
+                "onChange": "FunctionExpression"
             }
         }
     },

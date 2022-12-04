@@ -1,6 +1,40 @@
 const fs = require('fs')
 const colors = require('colors')
 
+const getParentPath = (path, argumentsName) => {
+    let target = path?.contexts[0].scope.bindings?.[argumentsName]
+    if (target) {
+        return target?.path.context.parentPath
+    } else {
+        return getParentPath(path?.contexts[0].parentPath, argumentsName)
+    }
+}
+
+const getParentClass = path => {
+    if (path.parentPath?.container.expression?.callee.name === '_createClass') {
+        return path.parentPath.parentPath
+    } else {
+        return getParentClass(path.parentPath)
+    }
+}
+
+const getRestExpressions = arg => {
+    let restExpressions = [arg.property?.name]
+    let obj = arg.object
+    while (obj) {
+        if (obj?.type === 'ThisExpression') {
+            restExpressions.unshift('this')
+            break
+        }
+        if (obj.property?.name) {
+            restExpressions.unshift(obj.property.name)
+        }
+        obj = obj.object
+    }
+
+    return restExpressions
+}
+
 const result = {
     componentsInCurrentFile: {}
 }
@@ -12,7 +46,7 @@ module.exports = ({types: t}, opts) => {
         name: 'xst-api-log',
         pre(state) {
             result.componentsInCurrentFile = {}
-            console.log(colors.green('[API log] 正在解析：', state.opts.sourceFileName))
+            console.log(colors.green('[API log] 正在解析：', state.opts.parserOpts.sourceFileName))
         },
         visitor: {
             Identifier(path, state) {
@@ -146,7 +180,7 @@ module.exports = ({types: t}, opts) => {
                     })
                 }
             },
-            // 写 ... spread 展开属性，如： <DatePicker {...yourConfig} />
+            // 写 ... spread 展开属性，如： <DatePicker {...config} />
             JSXSpreadAttribute(path) {
                 const node = path.node
                 const nestComp =
@@ -159,26 +193,67 @@ module.exports = ({types: t}, opts) => {
                     Object.keys(result[currentComp.lib]).forEach((comp, i) => {
                         if (result[currentComp.lib][comp].local === openingElement) {
                             // 使用local，不能直接使用Key，防止同时使用含有相同模块的多个仓库问题，local也处理类似 Input as FormControl用法问题
-                            const argumentsName = node.argument.name /** 要查找的目标变量名 yourConfig */
-                            const containers =
-                                path.contexts[0].scope.bindings[argumentsName].path.context.parentPath
-                                    .container /** uploaderConfig */
-
-                            for (let container of containers) {
-                                const declaration = container.declarations?.[0]
-                                if (declaration?.id.name === argumentsName) {
-                                    /** 查到 yourConfig 变量 */
-                                    const properties = declaration.init.properties
-                                    properties.forEach(property => {
-                                        /** 属性列表，遍历 */
-                                        if (property.value.type === 'JSXExpressionContainer') {
-                                            // 值为组件/回调
-                                            result[currentComp.lib][comp].api[property.key.name] =
-                                                property.value.expression.type
-                                        } else {
-                                            result[currentComp.lib][comp].api[property.key.name] = property.value.type // 写入变量名 key => value
+                            const argumentsName = node.argument?.name /** 1、var声明式目标变量名 config */
+                            if (argumentsName) {
+                                const containers = getParentPath(path, argumentsName)?.container
+                                if (containers) {
+                                    for (let container of containers) {
+                                        if (container.type === 'VariableDeclaration') {
+                                            // 声明类restProps
+                                            const declaration = container?.declarations?.[0]
+                                            if (declaration?.id.name === argumentsName) {
+                                                /** 查到 config 变量 */
+                                                const properties = declaration.init.properties
+                                                properties?.forEach(property => {
+                                                    /** 属性列表，遍历 */
+                                                    if (property.value.type === 'JSXExpressionContainer') {
+                                                        // 值为组件/回调
+                                                        result[currentComp.lib][comp].api[property.key.name] =
+                                                            property.value.expression.type
+                                                    } else {
+                                                        result[currentComp.lib][comp].api[property.key.name] =
+                                                            property.value.type // 写入变量名 key => value
+                                                    }
+                                                })
+                                            }
                                         }
-                                    })
+                                    }
+                                }
+                            } else if (node.argument.type === 'MemberExpression') {
+                                let restExpressions = getRestExpressions(node.argument)
+                                if (restExpressions[0] === 'this' && restExpressions[1] === 'state') {
+                                    /** 2、this.state.config声明变量 */
+                                    const containers = getParentClass(path)?.container
+                                    if (containers) {
+                                        for (let container of containers) {
+                                            if (container.type === 'FunctionDeclaration') {
+                                                const body = container.body?.body
+                                                const states = body.find(value => {
+                                                    return (
+                                                        value.type === 'ExpressionStatement' &&
+                                                        value.expression.type === 'AssignmentExpression' &&
+                                                        value.expression.left.property?.name === 'state'
+                                                    )
+                                                }).expression.right?.properties
+                                                const properties = states.find(state => {
+                                                    return state.key?.name === restExpressions[2]
+                                                }).value?.properties
+
+                                                /** 查到 config 变量 */
+                                                properties?.forEach(property => {
+                                                    /** 属性列表，遍历 */
+                                                    if (property.value.type === 'JSXExpressionContainer') {
+                                                        // 值为组件/回调
+                                                        result[currentComp.lib][comp].api[property.key.name] =
+                                                            property.value.expression.type
+                                                    } else {
+                                                        result[currentComp.lib][comp].api[property.key.name] =
+                                                            property.value.type // 写入变量名 key => value
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -188,7 +263,7 @@ module.exports = ({types: t}, opts) => {
         },
         post(state) {
             fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
-            console.log(colors.green('[API log] ', state.opts.sourceFileName, ' 解析完成'))
+            console.log(colors.green('[API log] ', state.opts.parserOpts.sourceFileName, ' 解析完成'))
         }
     }
 }
