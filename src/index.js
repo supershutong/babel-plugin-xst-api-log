@@ -78,28 +78,30 @@ module.exports = ({types: t}, opts) => {
                     // 1、组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
                     // 2、组件抛出的常量需放进组件API内，不能单独声明为组件。如：TreeSelect.SHOW_PARENT
                     if (
-                        result.componentsInCurrentFile[parentCompLocal] &&
-                        result[libObj.lib][parentComp] &&
+                        result.componentsInCurrentFile?.[parentCompLocal] &&
+                        result[libObj.lib]?.[parentComp] &&
                         !/^[A-Z]/.test(subCompName) /** 非大驼峰，避免子组件进入 */
                     ) {
                         if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         // 实例方法计入API
-                        let api = result[libObj.lib][parentComp].api || {}
+                        let api = result[libObj.lib][parentComp]?.api || {}
                         api[path.node.name] = path.node.type
                         result[libObj.lib][parentComp].api = api
                         return
                     } else if (!/[^A-Z_]+/.test(subCompName)) {
                         if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         /** 组件抛出的常量需计入组件API */
-                        let api = result[libObj.lib][parentComp].api || {}
+                        let api = result[libObj.lib][parentComp]?.api || {}
                         api[path.node.name] = 'ConstValue'
                         result[libObj.lib][parentComp].api = api
                         return
                     }
                     result.componentsInCurrentFile[local] = {lib: libObj.lib}
-                    result[libObj.lib][`${parentComp}.${subCompName}`] = {
-                        local,
-                        api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
+                    if (result[libObj.lib]) {
+                        result[libObj.lib][`${parentComp}.${subCompName}`] = {
+                            local,
+                            api: result[libObj.lib]?.[`${parentComp}.${subCompName}`]?.api || {}
+                        }
                     }
                 }
             },
@@ -147,9 +149,11 @@ module.exports = ({types: t}, opts) => {
                         path.node.name
 
                     result.componentsInCurrentFile[local] = {lib: libObj.lib}
-                    result[libObj.lib][`${parentComp}.${subCompName}`] = {
-                        local: subCompName,
-                        api: result[libObj.lib][`${parentComp}.${subCompName}`]?.api || {}
+                    if (result[libObj.lib]) {
+                        result[libObj.lib][`${parentComp}.${subCompName}`] = {
+                            local: subCompName,
+                            api: result[libObj.lib]?.[`${parentComp}.${subCompName}`]?.api || {}
+                        }
                     }
                 }
             },
@@ -195,8 +199,9 @@ module.exports = ({types: t}, opts) => {
                             // 使用local，不能直接使用Key，防止同时使用含有相同模块的多个仓库问题，local也处理类似 Input as FormControl用法问题
                             const argumentsName = node.argument?.name /** 1、var声明式目标变量名 config */
                             if (argumentsName) {
-                                const containers = getParentPath(path, argumentsName)?.container
+                                let containers = getParentPath(path, argumentsName)?.container
                                 if (containers) {
+                                    containers = Array.from(containers)
                                     for (let container of containers) {
                                         if (container.type === 'VariableDeclaration') {
                                             // 声明类restProps
@@ -223,8 +228,9 @@ module.exports = ({types: t}, opts) => {
                                 let restExpressions = getRestExpressions(node.argument)
                                 if (restExpressions[0] === 'this' && restExpressions[1] === 'state') {
                                     /** 2、this.state.config声明变量 */
-                                    const containers = getParentClass(path)?.container
+                                    let containers = getParentClass(path)?.container
                                     if (containers) {
+                                        containers = Array.from(containers)
                                         for (let container of containers) {
                                             if (container.type === 'FunctionDeclaration') {
                                                 const body = container.body?.body
