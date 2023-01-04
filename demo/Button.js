@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {Button} from 'tinper-bee'
-import {Input} from '@tinper/next-ui'
+// import {Input} from '@tinper/next-ui'
+import {Input} from './compents.js'
 
 export default class BeeButton extends React.Component {
     constructor(props) {

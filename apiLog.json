@@ -1,15 +1,4 @@
 {
-    "componentsInCurrentFile": {
-        "Icon": {
-            "lib": "@tinper/next-ui"
-        },
-        "Upload": {
-            "lib": "@tinper/next-ui"
-        },
-        "Dragger": {
-            "lib": "@tinper/next-ui"
-        }
-    },
     "@tinper/next-ui": {
         "ConfigProvider": {
             "local": "TConfigProvider",

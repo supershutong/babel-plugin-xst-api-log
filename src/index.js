@@ -1,5 +1,13 @@
 const fs = require('fs')
+const url = require('url')
 const colors = require('colors')
+
+let componentsInCurrentFile = {}
+let exportAllLibs = {
+    // '@tinper/next-ui': '/xxxxx/xst/babel-plugin-xst-api-log/demo/compents.js'
+}
+
+const result = {}
 
 const getParentPath = (path, argumentsName) => {
     let target = path?.contexts[0].scope.bindings?.[argumentsName]
@@ -35,17 +43,30 @@ const getRestExpressions = arg => {
     return restExpressions
 }
 
-const result = {
-    componentsInCurrentFile: {}
+const getTargetLib = (sourceValue, currentFilePath) => {
+    let targetLib = {
+        lib: '',
+        sourcePath: ''
+    }
+    Object.keys(exportAllLibs).forEach(lib => {
+        if (exportAllLibs[lib] === url.resolve(currentFilePath, sourceValue)) {
+            targetLib = {
+                lib,
+                sourcePath: exportAllLibs[lib]
+            }
+        }
+    })
+     
+    return targetLib
 }
 
-module.exports = ({types: t}, opts) => {
-    const {libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json'} = opts
+module.exports = ({ types: t }, opts) => {
+    const { libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json' } = opts
 
     return {
         name: 'xst-api-log',
         pre(state) {
-            result.componentsInCurrentFile = {}
+            componentsInCurrentFile = {}
             console.log(colors.green('[API log] 正在解析：', state.opts.parserOpts.sourceFileName))
         },
         visitor: {
@@ -57,7 +78,7 @@ module.exports = ({types: t}, opts) => {
                  */
                 const parentCompLocal = path.parent.object?.name
                 if (!parentCompLocal) return
-                const libObj = result.componentsInCurrentFile?.[parentCompLocal]
+                const libObj = componentsInCurrentFile?.[parentCompLocal]
                 if (!libObj) return
                 let parentComp = parentCompLocal
                 for (let comp in result[libObj.lib]) {
@@ -78,25 +99,25 @@ module.exports = ({types: t}, opts) => {
                     // 1、组件实例上挂载方法需放进组件API内，不能单独声明为组件。如：ConfigProvider.registerTheme('blue')
                     // 2、组件抛出的常量需放进组件API内，不能单独声明为组件。如：TreeSelect.SHOW_PARENT
                     if (
-                        result.componentsInCurrentFile?.[parentCompLocal] &&
+                        componentsInCurrentFile?.[parentCompLocal] &&
                         result[libObj.lib]?.[parentComp] &&
                         !/^[A-Z]/.test(subCompName) /** 非大驼峰，避免子组件进入 */
                     ) {
-                        if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
+                        if (componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         // 实例方法计入API
                         let api = result[libObj.lib][parentComp]?.api || {}
                         api[path.node.name] = path.node.type
                         result[libObj.lib][parentComp].api = api
                         return
                     } else if (!/[^A-Z_]+/.test(subCompName)) {
-                        if (result.componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
+                        if (componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         /** 组件抛出的常量需计入组件API */
                         let api = result[libObj.lib][parentComp]?.api || {}
                         api[path.node.name] = 'ConstValue'
                         result[libObj.lib][parentComp].api = api
                         return
                     }
-                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
+                    componentsInCurrentFile[local] = { lib: libObj.lib }
                     if (result[libObj.lib]) {
                         result[libObj.lib][`${parentComp}.${subCompName}`] = {
                             local,
@@ -105,31 +126,60 @@ module.exports = ({types: t}, opts) => {
                     }
                 }
             },
-            ImportDeclaration(path) {
-                const node = path.node
-                if (libs.includes(node.source.value)) {
+            ExportAllDeclaration(path, state) {
+                const node = path.node,
+                    value = node.source.value
+                if (libs.includes(value)) {
+                    // export * from ''@tinper/next-ui' 导出组件
                     // 建仓库
-                    if (!result[node.source.value]) {
-                        result[node.source.value] = {}
+                    if (!exportAllLibs[value]) {
+                        exportAllLibs[value] = state.filename
                     }
                 }
             },
-            ImportSpecifier(path) {
-                const node = path.node
-                // 来源于目标仓库的组件，写入组件名、别名
-                if (libs.includes(path.parent.source.value)) {
-                    result[path.parent.source.value][node.imported.name] = {
-                        local: node.local.name,
-                        api: result[path.parent.source.value][node.imported.name]?.api || {} /** 已录入API不能漏 */
+            ImportDeclaration(path, state) {
+                const node = path.node,
+                    value = node.source.value
+                const targetLib = getTargetLib(value, state.filename)
+
+                if (libs.includes(value)) {
+                    // 建仓库
+                    if (!result[value]) {
+                        result[value] = {}
                     }
-                    result.componentsInCurrentFile = result.componentsInCurrentFile || {}
-                    result.componentsInCurrentFile[node.local.name] = {lib: path.parent.source.value} // 组件所属框架
+                } else if (targetLib.sourcePath) {
+                    // export * 语法二次包装后引入
+                    // 建仓库
+                    if (targetLib.lib && !result[targetLib.lib]) {
+                        result[targetLib.lib] = {}
+                    }
+                }
+            },
+            ImportSpecifier(path, state) {
+                const node = path.node,
+                    value = path.parent.source.value
+                const targetLib = getTargetLib(value, state.filename)
+                // 来源于目标仓库的组件，写入组件名、别名
+                if (libs.includes(value)) {
+                    result[value][node.imported.name] = {
+                        local: node.local.name,
+                        api: result[value][node.imported.name]?.api || {} /** 已录入API不能漏 */
+                    }
+                    componentsInCurrentFile = componentsInCurrentFile || {}
+                    componentsInCurrentFile[node.local.name] = { lib: value } // 组件所属框架
+                } else if (targetLib.sourcePath) {
+                    result[targetLib.lib][node.local.name] = {
+                        local: node.local.name,
+                        api: result[targetLib.lib][node.local.name]?.api || {} /** 已录入API不能漏 */
+                    }
+                    componentsInCurrentFile = componentsInCurrentFile || {}
+                    componentsInCurrentFile[node.local.name] = { lib: targetLib.lib } // 组件所属框架
                 }
             },
             JSXIdentifier(path) {
                 const parentCompLocal = path.parent.object?.name
                 if (!parentCompLocal) return
-                const libObj = result.componentsInCurrentFile?.[parentCompLocal]
+                const libObj = componentsInCurrentFile?.[parentCompLocal]
                 if (!libObj) return
                 let parentComp = parentCompLocal
                 for (let comp in result[libObj.lib]) {
@@ -148,7 +198,7 @@ module.exports = ({types: t}, opts) => {
                         path.parentPath.container.id?.name /* Range */ ||
                         path.node.name
 
-                    result.componentsInCurrentFile[local] = {lib: libObj.lib}
+                    componentsInCurrentFile[local] = { lib: libObj.lib }
                     if (result[libObj.lib]) {
                         result[libObj.lib][`${parentComp}.${subCompName}`] = {
                             local: subCompName,
@@ -165,7 +215,7 @@ module.exports = ({types: t}, opts) => {
                         ?.name /** 使用子组件做openingElement标签 DatePicker.WeekPicker */
                 // 写入Tinper-next和Tinper-bee组件API
                 const openingElement = path.parent.name.name /** 使用组件做openingElement标签 DatePicker */ || nestComp
-                const currentComp = result.componentsInCurrentFile?.[openingElement]
+                const currentComp = componentsInCurrentFile?.[openingElement]
                 if (currentComp /* 目标组件 */) {
                     Object.keys(result[currentComp.lib]).forEach((comp, i) => {
                         if (result[currentComp.lib][comp].local === openingElement) {
@@ -192,7 +242,7 @@ module.exports = ({types: t}, opts) => {
                         ?.name /** 使用子组件做openingElement标签 DatePicker.WeekPicker */
                 // 写入Tinper-next和Tinper-bee组件API
                 const openingElement = path.parent.name.name /** 使用组件做openingElement标签 DatePicker */ || nestComp
-                const currentComp = result.componentsInCurrentFile?.[openingElement]
+                const currentComp = componentsInCurrentFile?.[openingElement]
                 if (currentComp /* 目标组件 */) {
                     Object.keys(result[currentComp.lib]).forEach((comp, i) => {
                         if (result[currentComp.lib][comp].local === openingElement) {
@@ -268,7 +318,7 @@ module.exports = ({types: t}, opts) => {
             }
         },
         post(state) {
-            fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
+            fs.writeFileSync(output, JSON.stringify(result, null, 4), { flag: 'w+' })
             console.log(colors.green('[API log] ', state.opts.parserOpts.sourceFileName, ' 解析完成'))
         }
     }
