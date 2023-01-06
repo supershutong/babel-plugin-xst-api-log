@@ -18,6 +18,9 @@
   "files": [
     "src"
   ],
+  "peerDependencies": {
+    "chalk": ">=4.1.2"
+  },
   "devDependencies": {
     "@arco-design/web-react": "^2.40.2",
     "@babel/core": "^7.19.3",
