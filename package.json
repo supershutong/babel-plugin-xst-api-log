@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-xst-api-log",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "一个分析组件库 API 调用图谱的 babel 插件",
   "main": "src/index.js",
   "scripts": {
