@@ -1,6 +1,6 @@
 const fs = require('fs')
 const url = require('url')
-const colors = require('colors')
+const chalk = require('chalk')
 
 let componentsInCurrentFile = {}
 let exportAllLibs = {
@@ -67,7 +67,7 @@ module.exports = ({ types: t }, opts) => {
         name: 'xst-api-log',
         pre(state) {
             componentsInCurrentFile = {}
-            console.log(colors.green('[API log] 正在解析：', state.opts.parserOpts.sourceFileName))
+            console.log(chalk.green('[API log] 正在解析：', state.opts.parserOpts.sourceFileName))
         },
         visitor: {
             Identifier(path, state) {
@@ -319,7 +319,7 @@ module.exports = ({ types: t }, opts) => {
         },
         post(state) {
             fs.writeFileSync(output, JSON.stringify(result, null, 4), { flag: 'w+' })
-            console.log(colors.green('[API log] ', state.opts.parserOpts.sourceFileName, ' 解析完成'))
+            console.log(chalk.green('[API log] ', state.opts.parserOpts.sourceFileName, ' 解析完成'))
         }
     }
 }
