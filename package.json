@@ -15,6 +15,9 @@
   "author": "xst",
   "license": "ISC",
   "repository": "https://github.com/supershutong/babel-plugin-xst-api-log.git",
+  "files": [
+    "src"
+  ],
   "devDependencies": {
     "@arco-design/web-react": "^2.40.2",
     "@babel/core": "^7.19.3",
