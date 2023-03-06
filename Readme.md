@@ -6,6 +6,9 @@
 npm install -D babel-plugin-xst-api-log
 ```
 
+## 使用说明
+安装依赖后，webpack构建时会自动执行该插件，在指定目录下生成依赖图谱的json文件。
+
 ## API
 
 | 参数 | 说明 | 类型 | 默认值 | 版本 |

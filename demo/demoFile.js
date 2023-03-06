@@ -79,6 +79,8 @@ export default class Page extends React.Component {
                     treeDefaultExpandAll
                 />
                 <Dragger />
+                <Button color='info' loading>测试color统计次数</Button>
+                <Button color='danger' round>取消</Button>
                 <BeeButton type='primary'>提交</BeeButton>
             </div>
         )

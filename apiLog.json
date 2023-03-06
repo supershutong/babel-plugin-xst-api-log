@@ -3,84 +3,87 @@
         "ConfigProvider": {
             "local": "TConfigProvider",
             "api": {
-                "registerTheme": "Identifier",
-                "config": "Identifier",
-                "locale": "Identifier"
+                "registerTheme": 1,
+                "config": 1,
+                "locale": 1
             }
         },
         "Input": {
             "local": "Input",
             "api": {
-                "type": "StringLiteral",
-                "size": "StringLiteral",
-                "disabled": "BooleanLiteral",
-                "onChange": "ArrowFunctionExpression"
+                "type": 1,
+                "size": 1,
+                "disabled": 1,
+                "onChange": 1
             }
         },
         "DatePicker": {
             "local": "DatePicker",
             "api": {
-                "picker": "StringLiteral",
-                "showToday": "BooleanLiteral",
-                "showTime": "ObjectExpression",
-                "onChange": "MemberExpression"
+                "picker": 1,
+                "showToday": 1,
+                "showTime": 1,
+                "onChange": 1
             }
         },
         "Checkbox": {
             "local": "Checkbox",
             "api": {
-                "value": "StringLiteral",
-                "readOnly": "BooleanLiteral"
+                "value": 3,
+                "readOnly": 1
             }
         },
         "Button": {
             "local": "Button",
             "api": {
-                "className": "StringLiteral"
+                "className": 1,
+                "color": 2,
+                "loading": 1,
+                "round": 1
             }
         },
         "TreeSelect": {
             "local": "TreeSelect",
             "api": {
-                "SHOW_PARENT": "ConstValue",
-                "style": "ObjectExpression",
-                "dropdownStyle": "ObjectExpression",
-                "showCheckedStrategy": "Identifier",
-                "treeDefaultExpandAll": "BooleanLiteral"
+                "SHOW_PARENT": 1,
+                "style": 1,
+                "dropdownStyle": 1,
+                "showCheckedStrategy": 1,
+                "treeDefaultExpandAll": 1
             }
         },
         "Tooltip": {
             "local": "Tooltip",
             "api": {
-                "placement": "StringLiteral",
-                "overlay": "StringLiteral"
+                "placement": 1,
+                "overlay": 1
             }
         },
         "Checkbox.Group": {
             "local": "CheckboxGroup",
             "api": {
-                "style": "ObjectExpression",
-                "value": "MemberExpression",
-                "readOnly": "BooleanLiteral"
+                "style": 1,
+                "value": 1,
+                "readOnly": 1
             }
         },
         "DatePicker.RangePicker": {
             "local": "Range",
             "api": {
-                "placeholder": "ArrayExpression"
+                "placeholder": 1
             }
         },
         "DatePicker.WeekPicker": {
             "local": "WeekPicker",
             "api": {
-                "mode": "StringLiteral"
+                "mode": 1
             }
         },
         "Icon": {
             "local": "Icon",
             "api": {
-                "type": "StringLiteral",
-                "className": "StringLiteral"
+                "type": 1,
+                "className": 1
             }
         },
         "Upload": {
@@ -90,12 +93,12 @@
         "Upload.Dragger": {
             "local": "Dragger",
             "api": {
-                "multiple": "BooleanLiteral",
-                "enterDragger": "FunctionExpression",
-                "leaveDragger": "FunctionExpression",
-                "showUploadList": "BooleanLiteral",
-                "action": "StringLiteral",
-                "onChange": "FunctionExpression"
+                "multiple": 1,
+                "enterDragger": 1,
+                "leaveDragger": 1,
+                "showUploadList": 1,
+                "action": 1,
+                "onChange": 1
             }
         }
     },
@@ -103,7 +106,7 @@
         "Button": {
             "local": "Button",
             "api": {
-                "size": "LogicalExpression"
+                "size": 1
             }
         }
     }

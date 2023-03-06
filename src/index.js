@@ -56,12 +56,12 @@ const getTargetLib = (sourceValue, currentFilePath) => {
             }
         }
     })
-     
+
     return targetLib
 }
 
-module.exports = ({ types: t }, opts) => {
-    const { libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json' } = opts
+module.exports = ({types: t}, opts) => {
+    const {libs = ['@tinper/next-ui', 'tinper-bee'], output = './apiLog.json'} = opts
 
     return {
         name: 'xst-api-log',
@@ -106,18 +106,20 @@ module.exports = ({ types: t }, opts) => {
                         if (componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         // 实例方法计入API
                         let api = result[libObj.lib][parentComp]?.api || {}
-                        api[path.node.name] = path.node.type
+                        api[path.node.name] = api[path.node.name] ? api[path.node.name] + 1 : 1
+                        // api[path.node.name] = path.node.type
                         result[libObj.lib][parentComp].api = api
                         return
                     } else if (!/[^A-Z_]+/.test(subCompName)) {
                         if (componentsInCurrentFile[path.node.name]) return // ast多解析出的父节点忽略
                         /** 组件抛出的常量需计入组件API */
                         let api = result[libObj.lib][parentComp]?.api || {}
-                        api[path.node.name] = 'ConstValue'
+                        api[path.node.name] = api[path.node.name] ? api[path.node.name] + 1 : 1
+                        // api[path.node.name] = 'ConstValue'
                         result[libObj.lib][parentComp].api = api
                         return
                     }
-                    componentsInCurrentFile[local] = { lib: libObj.lib }
+                    componentsInCurrentFile[local] = {lib: libObj.lib}
                     if (result[libObj.lib]) {
                         result[libObj.lib][`${parentComp}.${subCompName}`] = {
                             local,
@@ -166,14 +168,14 @@ module.exports = ({ types: t }, opts) => {
                         api: result[value][node.imported.name]?.api || {} /** 已录入API不能漏 */
                     }
                     componentsInCurrentFile = componentsInCurrentFile || {}
-                    componentsInCurrentFile[node.local.name] = { lib: value } // 组件所属框架
+                    componentsInCurrentFile[node.local.name] = {lib: value} // 组件所属框架
                 } else if (targetLib.sourcePath) {
                     result[targetLib.lib][node.local.name] = {
                         local: node.local.name,
                         api: result[targetLib.lib][node.local.name]?.api || {} /** 已录入API不能漏 */
                     }
                     componentsInCurrentFile = componentsInCurrentFile || {}
-                    componentsInCurrentFile[node.local.name] = { lib: targetLib.lib } // 组件所属框架
+                    componentsInCurrentFile[node.local.name] = {lib: targetLib.lib} // 组件所属框架
                 }
             },
             JSXIdentifier(path) {
@@ -198,7 +200,7 @@ module.exports = ({ types: t }, opts) => {
                         path.parentPath.container.id?.name /* Range */ ||
                         path.node.name
 
-                    componentsInCurrentFile[local] = { lib: libObj.lib }
+                    componentsInCurrentFile[local] = {lib: libObj.lib}
                     if (result[libObj.lib]) {
                         result[libObj.lib][`${parentComp}.${subCompName}`] = {
                             local: subCompName,
@@ -220,16 +222,20 @@ module.exports = ({ types: t }, opts) => {
                     Object.keys(result[currentComp.lib]).forEach((comp, i) => {
                         if (result[currentComp.lib][comp].local === openingElement) {
                             // 使用local，不能直接使用Key，防止同时使用含有相同模块的多个仓库问题，local也处理类似 Input as FormControl用法问题
-                            if (node.value === null) {
-                                // boolean默认true不写，如：<DatePicker showToday />
-                                result[currentComp.lib][comp].api[node.name.name] = 'BooleanLiteral'
-                            } else if (node.value?.type === 'JSXExpressionContainer') {
-                                // 值为组件/回调
-                                result[currentComp.lib][comp].api[node.name.name] = node.value.expression.type
-                            } else {
-                                result[currentComp.lib][comp].api[node.name.name] =
-                                    node.value?.type /* 对象、回调、数组、字符串、bool、空、undefined、number，从property/propertites/elements取值 */
-                            }
+                            let api = result[currentComp.lib][comp].api
+                            result[currentComp.lib][comp].api[node.name.name] = api[node.name.name]
+                                ? api[node.name.name] + 1
+                                : 1
+                            // if (node.value === null) {
+                            //     // boolean默认true不写，如：<DatePicker showToday />
+                            //     result[currentComp.lib][comp].api[node.name.name] = 'BooleanLiteral'
+                            // } else if (node.value?.type === 'JSXExpressionContainer') {
+                            //     // 值为组件/回调
+                            //     result[currentComp.lib][comp].api[node.name.name] = node.value.expression.type
+                            // } else {
+                            //     result[currentComp.lib][comp].api[node.name.name] =
+                            //         node.value?.type /* 对象、回调、数组、字符串、bool、空、undefined、number，从property/propertites/elements取值 */
+                            // }
                         }
                     })
                 }
@@ -261,14 +267,20 @@ module.exports = ({ types: t }, opts) => {
                                                 const properties = declaration.init.properties
                                                 properties?.forEach(property => {
                                                     /** 属性列表，遍历 */
-                                                    if (property.value.type === 'JSXExpressionContainer') {
-                                                        // 值为组件/回调
-                                                        result[currentComp.lib][comp].api[property.key.name] =
-                                                            property.value.expression.type
-                                                    } else {
-                                                        result[currentComp.lib][comp].api[property.key.name] =
-                                                            property.value.type // 写入变量名 key => value
-                                                    }
+                                                    let api = result[currentComp.lib][comp].api
+                                                    result[currentComp.lib][comp].api[property.key.name] = api[
+                                                        property.key.name
+                                                    ]
+                                                        ? api[property.key.name] + 1
+                                                        : 1
+                                                    // if (property.value.type === 'JSXExpressionContainer') {
+                                                    //     // 值为组件/回调
+                                                    //     result[currentComp.lib][comp].api[property.key.name] =
+                                                    //         property.value.expression.type
+                                                    // } else {
+                                                    //     result[currentComp.lib][comp].api[property.key.name] =
+                                                    //         property.value.type // 写入变量名 key => value
+                                                    // }
                                                 })
                                             }
                                         }
@@ -298,14 +310,20 @@ module.exports = ({ types: t }, opts) => {
                                                 /** 查到 config 变量 */
                                                 properties?.forEach(property => {
                                                     /** 属性列表，遍历 */
-                                                    if (property.value.type === 'JSXExpressionContainer') {
-                                                        // 值为组件/回调
-                                                        result[currentComp.lib][comp].api[property.key.name] =
-                                                            property.value.expression.type
-                                                    } else {
-                                                        result[currentComp.lib][comp].api[property.key.name] =
-                                                            property.value.type // 写入变量名 key => value
-                                                    }
+                                                    let api = result[currentComp.lib][comp].api
+                                                    result[currentComp.lib][comp].api[property.key.name] = api[
+                                                        property.key.name
+                                                    ]
+                                                        ? api[property.key.name] + 1
+                                                        : 1
+                                                    // if (property.value.type === 'JSXExpressionContainer') {
+                                                    //     // 值为组件/回调
+                                                    //     result[currentComp.lib][comp].api[property.key.name] =
+                                                    //         property.value.expression.type
+                                                    // } else {
+                                                    //     result[currentComp.lib][comp].api[property.key.name] =
+                                                    //         property.value.type // 写入变量名 key => value
+                                                    // }
                                                 })
                                             }
                                         }
@@ -318,7 +336,7 @@ module.exports = ({ types: t }, opts) => {
             }
         },
         post(state) {
-            fs.writeFileSync(output, JSON.stringify(result, null, 4), { flag: 'w+' })
+            fs.writeFileSync(output, JSON.stringify(result, null, 4), {flag: 'w+'})
             console.log(chalk.green('[API log] ', state.opts.parserOpts.sourceFileName, ' 解析完成'))
         }
     }
